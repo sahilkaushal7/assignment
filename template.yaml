@@ -15,17 +15,47 @@ Globals:
   Api:
     TracingEnabled: true
 Resources:
+  LogsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        -
+          AttributeName: id
+          KeyType: HASH
+        -
+          AttributeName: timestamp
+          KeyType: RANGE
+      TableName: logs
+      AttributeDefinitions:
+        -
+          AttributeName: id
+          AttributeType: S
+        -
+          AttributeName: timestamp
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: hello_world/
-      Handler: app.lambda_handler
+      Handler: app.app
       Runtime: python3.7
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref LogsTable
       Events:
-        HelloWorld:
+        Log:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /hello
+            Path: /log
+            Method: post
+        Logs:
+          Type: Api
+          Properties:
+            Path: /logs
             Method: get
 
 Outputs:
